@@ -1,95 +1,115 @@
-from logging import error
-from pydub import AudioSegment
-from pydub.silence import split_on_silence
-import glob
-import os.path
-from scripts.feature_extraction import Feature_Extraction 
+import numpy as np
 import pandas as pd
+import parselmouth
+from parselmouth.praat import call
+import os
 
+class Feature_Extraction:
+    """
+    Feature extraction class containing the methods to extract features for each voice sample.
+    """
 
-f = Feature_Extraction()
+    def __init__(self):
+        self.acoustic_features = []
+        self.mfcc = []
 
-def split_into_chunks(folder_paths, parent_dirs):
-    """Split wav files into chunks based on provided folder paths and parent directories."""
-    for i in range(len(folder_paths)):
-        for file in glob.glob(folder_paths[i]):
-            try:
-                print(file)
-                path2, filename2 = os.path.split(file)
-                root, ext = os.path.splitext(filename2)
-                x = root.split('_')[0]
+    def extract_acoustic_features(self, voice_sample, f0_min=75, f0_max=500, unit="Hertz"):
+        """
+        Extract acoustic features like jitters, shimmers, and HNR from a single .wav file.
 
-                directory = x
-                parent_dir = parent_dirs[i]
+        Parameters:
+        voice_sample : .wav file path
+            Path to the voice sample we want to extract the features from
+        f0_min: int
+            Minimum fundamental frequency (default 75 Hz)
+        f0_max: int
+            Maximum fundamental frequency (default 500 Hz)
+        """
+        try:
+            sound = parselmouth.Sound(voice_sample)
+            pitch = call(sound, "To Pitch", 0.0, f0_min, f0_max)
+            f0_mean = call(pitch, "Get mean", 0, 0, unit)
+            f0_std_deviation = call(pitch, "Get standard deviation", 0, 0, unit)
+            harmonicity = call(sound, "To Harmonicity (cc)", 0.01, f0_min, 0.1, 1.0)
+            hnr = call(harmonicity, "Get mean", 0, 0)
+            pointProcess = call(sound, "To PointProcess (periodic, cc)", f0_min, f0_max)
+            jitter_relative = call(pointProcess, "Get jitter (local)", 0, 0, 0.0001, 0.02, 1.3)
+            jitter_absolute = call(pointProcess, "Get jitter (local, absolute)", 0, 0, 0.0001, 0.02, 1.3)
+            jitter_rap = call(pointProcess, "Get jitter (rap)", 0, 0, 0.0001, 0.02, 1.3)
+            jitter_ppq5 = call(pointProcess, "Get jitter (ppq5)", 0, 0, 0.0001, 0.02, 1.3)
+            shimmer_relative = call([sound, pointProcess], "Get shimmer (local)", 0, 0, 0.0001, 0.02, 1.3, 1.6)
+            shimmer_localDb = call([sound, pointProcess], "Get shimmer (local_dB)", 0, 0, 0.0001, 0.02, 1.3, 1.6)
+            shimmer_apq3 = call([sound, pointProcess], "Get shimmer (apq3)", 0, 0, 0.0001, 0.02, 1.3, 1.6)
+            shimmer_apq5 = call([sound, pointProcess], "Get shimmer (apq5)", 0, 0, 0.0001, 0.02, 1.3, 1.6)
 
-                path = os.path.join(parent_dir, directory)
-                print(path)
-                os.makedirs(path, exist_ok=True)
+            return {
+                "f0_mean": f0_mean,
+                "f0_std_deviation": f0_std_deviation,
+                "hnr": hnr,
+                "jitter_relative": jitter_relative,
+                "jitter_absolute": jitter_absolute,
+                "jitter_rap": jitter_rap,
+                "jitter_ppq5": jitter_ppq5,
+                "shimmer_relative": shimmer_relative,
+                "shimmer_localDb": shimmer_localDb,
+                "shimmer_apq3": shimmer_apq3,
+                "shimmer_apq5": shimmer_apq5
+            }
 
-                sound_file = AudioSegment.from_wav(file)
-                audio_chunks = split_on_silence(sound_file, 
-                    min_silence_len=1000,
-                    silence_thresh=-40)
-                for j, chunk in enumerate(audio_chunks):
-                    out_file = os.path.join(path, f"chunk{j}.wav")
-                    print("exporting", out_file)
-                    chunk.export(out_file, format="wav")
-            except Exception as e:
-                print(e)
-                print("error while handling file:", file)
+        except Exception as e:
+            print(f"Error processing acoustic features for {voice_sample}: {e}")
+            return None
 
+    def extract_mfcc(self, voice_sample):
+        """
+        Extract MFCC from a single .wav file.
 
-def extract_features_from_chunks(folder_path, label):
-    """Extract acoustic features from the given folder path."""
-    df_all = []
-    for root, dirs, _ in os.walk(folder_path):
-        for dir in dirs:
-            full_folder_path = os.path.join(root, dir, "*.wav")
-            print(full_folder_path)
-            df_hc = f.extract_features_from_folder(full_folder_path)
-            df_all.append(df_hc)
+        Parameters:
+        voice_sample : .wav file path
+            Path to the voice sample we want to extract the features from.
+        """
+        try:
+            sound = parselmouth.Sound(voice_sample)
+            mfcc_object = sound.to_mfcc(number_of_coefficients=12)  # Extract 12 MFCCs
+            mfcc = mfcc_object.to_array()
+            mfcc_mean = np.mean(mfcc.T, axis=0)
+            return mfcc_mean
 
-    if df_all:
-        df_all = pd.concat(df_all)
-        df_all['label'] = label
-        return df_all
-    else:
-        raise ValueError("No objects to concatenate in extract_features_from_chunks")
+        except Exception as e:
+            print(f"Error processing MFCC for {voice_sample}: {e}")
+            return None
 
+    def process_single_file(self, file_path):
+        """
+        Process a single .wav file and extract both acoustic and MFCC features.
 
-def extract_mfccfeatures_from_chunks(folder_path, label):
-    """Extract MFCC features from the given folder path."""
-    df_all = []
-    for root, dirs, _ in os.walk(folder_path):
-        for dir in dirs:
-            full_folder_path = os.path.join(root, dir, "*.wav")
-            print(full_folder_path)
-            df_hc = f.extract_mfcc_from_folder(full_folder_path)
-            df_all.append(df_hc)
+        Parameters:
+        file_path : str
+            Path to the .wav file to be processed.
 
-    if df_all:
-        df_all = pd.concat(df_all)
-        df_all['label'] = label
-        return df_all
-    else:
-        raise ValueError("No objects to concatenate in extract_mfccfeatures_from_chunks")
+        Returns:
+        pd.DataFrame : DataFrame containing the extracted acoustic and MFCC features.
+        """
+        try:
+            if not os.path.exists(file_path):
+                print(f"File {file_path} does not exist.")
+                return None
 
+            # Extract acoustic features
+            acoustic_features = self.extract_acoustic_features(file_path)
 
-def acoustic_features(hc_folder_path, pd_folder_path):
-    """Extract and combine acoustic features from the given HC and PD folder paths."""
-    hc = extract_features_from_chunks(hc_folder_path, 0)
-    pd_1 = extract_features_from_chunks(pd_folder_path, 1)
-    df_acoustic_features = pd.concat([hc, pd_1])
-    f.convert_to_csv(df_acoustic_features, "../data/interim/MDVR_acoustic_features_chunks")
-    return df_acoustic_features
+            # Extract MFCC features
+            mfcc_features = self.extract_mfcc(file_path)
 
+            # Combine into a DataFrame
+            if acoustic_features and mfcc_features is not None:
+                data = {**acoustic_features, **{f"mfcc_{i}": mfcc for i, mfcc in enumerate(mfcc_features)}}
+                df = pd.DataFrame([data])
+                return df
+            else:
+                print("Failed to extract features.")
+                return None
 
-def mfcc_features(hc_folder_path, pd_folder_path):
-    """Extract and combine MFCC features from the given HC and PD folder paths."""
-    print("Start")
-    hc = extract_mfccfeatures_from_chunks(hc_folder_path, 0)
-    pd_1 = extract_mfccfeatures_from_chunks(pd_folder_path, 1)
-    df_mfcc_features = pd.concat([hc, pd_1])
-    f.convert_to_csv(df_mfcc_features, "../data/interim/MDVR_mfcc_features_chunks")
-    print("End")
-    return df_mfcc_features
+        except Exception as e:
+            print(f"Error processing file {file_path}: {e}")
+            return None
