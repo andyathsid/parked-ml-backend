@@ -1,11 +1,11 @@
 import pickle
 from flask import Flask, request, jsonify
 import numpy as np
-from mdvr_extraction import process_single_file_for_prediction
+from scripts.mdvr_extraction import process_single_file_for_prediction
 from sklearn.preprocessing import MinMaxScaler
 import os
 
-input_file = 'model-vm_mdvr-kcl_knn.bin'
+input_file = 'model_vm_mdvr-kcl_knn.bin'
 with open(input_file, 'rb') as file:
     model = pickle.load(file)
 

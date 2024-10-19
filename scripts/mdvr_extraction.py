@@ -1,7 +1,7 @@
 from pydub import AudioSegment
 from pydub.silence import split_on_silence
 import os
-from feature_extraction import Feature_Extraction  # Updated import
+from scripts.feature_extraction import Feature_Extraction  # Updated import
 import pandas as pd
 
 # Initialize the feature extraction object
