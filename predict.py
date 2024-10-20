@@ -30,7 +30,7 @@ def predict():
         scaler = MinMaxScaler()  
         X_test_scaled = scaler.fit_transform(X_test)  
 
-        predictions = model.predict(X_test_scaled)
+        # predictions = model.predict(X_test_scaled)
 
         probabilities = model.predict_proba(X_test_scaled)
 
@@ -39,15 +39,13 @@ def predict():
         final_prediction = np.argmax(total_probabilities)
 
         result = {
-            'Predictions': predictions.tolist(),  
-            'Detection': bool(final_prediction)  
+            'detection': bool(final_prediction)  
         }
     else:
         return jsonify({'error': 'Failed to process the file.'}), 500
 
-    # # Clean up the saved file after processing (optional)
-    # if os.path.exists(file_path):
-    #     os.remove(file_path)
+    if os.path.exists(file_path):
+        os.remove(file_path)
 
     return jsonify(result)
 
