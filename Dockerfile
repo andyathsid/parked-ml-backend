@@ -1,8 +1,6 @@
-FROM python:3.11.10-slim
+FROM public.ecr.aws/lambda/python:3.11
 
 RUN pip install pipenv
-
-WORKDIR /app
 
 COPY ["Pipfile", "Pipfile.lock", "./"]
 
@@ -10,9 +8,9 @@ RUN pipenv install --system --deploy
 
 COPY scripts/ ./scripts/
 COPY data/raw/ ./data/raw/
+COPY lambda_function.py .
 
-COPY ["predict.py", "model_vm_mdvr-kcl_knn.bin", "./"]
+COPY ["model_vm_mdvr-kcl_knn.bin", "./"]
 
-EXPOSE 9696
+CMD ["lambda_function.lambda_handler"]
 
-ENTRYPOINT ["gunicorn", "--bind=0.0.0.0:9696", "predict:app"]
