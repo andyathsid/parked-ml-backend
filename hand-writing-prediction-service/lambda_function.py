@@ -14,12 +14,10 @@ preprocessor = create_preprocessor("resnet50", target_size=(224, 224))
 
 def predict(url):
     X = preprocessor.from_url(url)
-
     interpreter.set_tensor(input_index, X)
     interpreter.invoke()
-
     preds = interpreter.get_tensor(output_index)
-    return {"prediction": preds[0][1]}
+    return {"prediction": preds[0][1].tolist()}
 
 
 def lambda_handler(event, context):
