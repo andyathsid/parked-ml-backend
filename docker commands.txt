@@ -1,0 +1,4 @@
+docker build -t parked-gateway:001 -f image-gateway.dockerfile .
+docker build -t parked-hw-model:resnet50-002 -f image-model.dockerfile .
+docker run -it --rm -p 8500:8500 parked-hw-model:resnet50-001
+docker run -it --rm -p 9696:9696 parked-gateway:001
