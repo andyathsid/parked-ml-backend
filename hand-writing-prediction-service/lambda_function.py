@@ -1,6 +1,5 @@
 import tflite_runtime.interpreter as tflite
-from keras_image_helper import create_preprocessor
-
+import numpy as np
 
 interpreter = tflite.Interpreter(
     model_path="model_hw_newhandpd_aug-ilum_rasnet50.tflite"
@@ -9,18 +8,28 @@ interpreter.allocate_tensors()
 
 input_index = interpreter.get_input_details()[0]["index"]
 output_index = interpreter.get_output_details()[0]["index"]
-preprocessor = create_preprocessor("resnet50", target_size=(224, 224))
 
 
-def predict(url):
-    X = preprocessor.from_url(url)
-    interpreter.set_tensor(input_index, X)
+def predict(X):
+    interpreter.set_tensor(input_index, np.float32(X))
     interpreter.invoke()
     preds = interpreter.get_tensor(output_index)
-    return {"prediction": preds[0][1].tolist()}
+    return {
+        'hw-result': preds[0][1].tolist(),
+        'hw-error': None
+    }
 
 
 def lambda_handler(event, context):
-    url = event["url"]
-    result = predict(url)
-    return result
+    try:
+        if 'data' in event:
+            preprocessed_data = np.array(event['data'])
+            return predict(preprocessed_data)
+        else:
+            return {'error': 'No data provided'}
+    
+    except Exception as e:
+        return {
+            'hw-result': None,
+            'hw-error': str(e)
+        }
