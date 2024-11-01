@@ -1,0 +1,11 @@
+ACCOUNT=863518452414
+REGION=ap-southeast-1
+REGISTRY=parked-images
+PREFIX=${ACCOUNT}.dkr.ecr.${REGION}.amazonaws.com/${REGISTRY}
+TAG=model_ni_ppmi_vgg16_001
+REMOTE_URI=${PREFIX}:${TAG}
+docker build --platform linux/amd64 --provenance=false -t parked-ni-model .
+docker tag parked-hw-model ${REMOTE_URI}
+docker push ${REMOTE_URI}
+
+
