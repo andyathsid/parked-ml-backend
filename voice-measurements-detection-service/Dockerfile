@@ -6,8 +6,6 @@ COPY ["Pipfile", "Pipfile.lock", "./"]
 
 RUN pipenv install --system --deploy
 
-COPY scripts/ ./scripts/
-COPY data/raw/ ./data/raw/
 COPY lambda_function.py .
 
 COPY ["model_vm_mdvr-kcl_knn.bin", "./"]
