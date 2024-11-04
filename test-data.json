@@ -1,0 +1,33 @@
+
+// PD
+
+{
+    "vm-url": "https://github.com/andyathsid/parked-ml-dev/blob/main/voice-measurements-detection/data/raw/MDVR-KCL/ReadText/PD/ID02_pd_2_0_0.wav?raw=true",
+    "hw-url": "https://github.com/andyathsid/parked-ml-dev/blob/main/hand-writing-detection/data/raw/NewHandPD/PatientSpiral/sp1-P1.jpg?raw=true",
+    "ni-url": "https://github.com/aaronstone1699/parkinson-s-diagnosis/blob/master/images/test%20images/pd_raw_brain_mri_w_sn_5.jpg?raw=true"
+}
+
+// Non-PD
+
+{
+    "vm-url": "https://github.com/andyathsid/parked-ml-dev/blob/main/voice-measurements-detection/data/raw/MDVR-KCL/ReadText/PD/ID02_pd_2_0_0.wav?raw=true",
+    "hw-url": "https://github.com/andyathsid/parked-ml-dev/blob/main/hand-writing-detection/data/raw/NewHandPD/HealthySpiral/sp1-H1.jpg?raw=true",
+    "ni-url": "https://github.com/aaronstone1699/parkinson-s-diagnosis/blob/master/images/test%20images/control_raw_brain_mri_w_sn_1.jpg?raw=true"
+}
+
+// PD
+
+{
+    "vm-url": "https://github.com/andyathsid/parked-ml-dev/blob/main/voice-measurements-detection/data/raw/MDVR-KCL/ReadText/PD/ID02_pd_2_0_0.wav?raw=true",
+    "hw-url": "https://github.com/andyathsid/parked-ml-dev/blob/main/hand-writing-detection/data/raw/NewHandPD/PatientSpiral/sp1-P1.jpg?raw=true",
+    "ni-url": "https://github.com/aaronstone1699/parkinson-s-diagnosis/blob/master/images/test%20images/pd_raw_brain_mri_w_sn_5.jpg?raw=true"
+}
+
+// Non-PD
+
+{
+    "vm-url": "https://github.com/andyathsid/parked-ml-dev/blob/main/voice-measurements-detection/data/raw/MDVR-KCL/ReadText/PD/ID02_pd_2_0_0.wav?raw=true",
+    "hw-url": "https://github.com/andyathsid/parked-ml-dev/blob/main/hand-writing-detection/data/raw/NewHandPD/HealthySpiral/sp1-H1.jpg?raw=true",
+    "ni-url": "https://github.com/aaronstone1699/parkinson-s-diagnosis/blob/master/images/test%20images/control_raw_brain_mri_w_sn_1.jpg?raw=true"
+}
+
